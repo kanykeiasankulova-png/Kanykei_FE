@@ -24,6 +24,7 @@ sales_df['revenue'] = sales_df['quantity_sold'] * sales_df['unit_price']
 st.sidebar.header("🔍 Filters")
 categories = ["All"] + list(sales_df['category'].unique())
 selected_category = st.sidebar.selectbox("Select Category", categories)
+inv_category = st.sidebar.selectbox("Inventory Category", ["All"] + list(inventory_df['category'].unique()))
 
 st.sidebar.header("📦 Inventory Settings")
 threshold = st.sidebar.number_input("Low Stock Threshold", min_value=5, max_value=100, value=20)
@@ -97,6 +98,10 @@ st.pyplot(fig3)
 st.header("📦 Inventory Management")
 
 inventory_list = inventory_df.to_dict('records')
+filtered_inventory = inventory_df.copy()
+if inv_category != "All":
+    filtered_inventory = filtered_inventory[filtered_inventory['category'] == inv_category]
+inventory_list = filtered_inventory.to_dict('records')
 low_stock = list(filter(lambda p: p['stock_quantity'] < threshold, inventory_list))
 total_at_risk = reduce(lambda a, b: a + b['stock_quantity'], low_stock, 0)
 
@@ -110,4 +115,4 @@ st.subheader("Full Inventory")
 inventory_df['status'] = inventory_df['stock_quantity'].apply(
     lambda x: "🔴 Low Stock" if x < threshold else "🟢 OK"
 )
-st.dataframe(inventory_df)
+st.dataframe(filtered_inventory)
